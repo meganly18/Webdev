@@ -1,0 +1,78 @@
+.Header{
+    background-color: black;
+    color: white;
+    height: 100px;
+    line-height: 100px;
+}
+
+.Mainbody{
+    background-color:rgb(192, 232, 243)
+}
+
+img{
+    display: block;
+    width: 40%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.Footer{
+    background-color: black;
+    color: white;
+    height: 15px;
+    line-height: 15px;
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    left: 0px;
+}
+
+.common{
+    text-align: center;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+nav{
+    background-color: rgb(155, 158, 159);
+    padding: 10px;
+    overflow: hidden;
+}
+
+nav a{
+    color: rgb(0, 0, 0);
+    padding: 10px;
+    text-decoration: none;
+    font-size: 16xp;
+    font-weight: bold;
+    float: left;
+}
+
+nav a:hover{
+    background-color:rgb(106, 162, 190)
+}
+.penguinfacts{
+    text-align: left;
+}
+.highlight{
+    font-weight: bold;
+    font-size: large;
+}
+.img{
+    display: flex;
+}
+html{
+    scroll-behavior: smooth;
+}
+.back-to-top{
+    position:relative
+     bottom: 20px;
+     right: 20px;
+     background-color: black;
+     color: white;
+     padding: 10px 15px;
+     border-radius: 5px;
+
+     font-weight: bold;
+     box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+
+}

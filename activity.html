@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arctic Logic | Professional Nonogram Suite</title>
+    <style>
+        :root {
+            --arctic-blue: #f0f7f9;
+            --ice-shelf: #ffffff;
+            --glacier-blue: #3498db;
+            --deep-ocean: #2c3e50;
+            --cell-size: 30px;
+            --hint-bg: #e1eef2;
+        }
+
+        body {
+            background-color: var(--arctic-blue);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: var(--deep-ocean);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Professional Header & Nav Bar */
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 15px 40px;
+            box-sizing: border-box;
+            margin-bottom: 40px;
+        }
+
+        h1 { margin: 0; font-weight: 300; letter-spacing: 1px; font-size: 1.4rem; }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 30px;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--deep-ocean);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover { color: var(--glacier-blue); }
+
+        /* Main Workspace Layout */
+        .main-workspace {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            max-width: 1200px;
+            padding: 20px;
+        }
+
+        .sidebar {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 220px;
+        }
+
+        .sidebar h3 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+            font-family: inherit;
+        }
+
+        .btn-reset {
+            width: 100%;
+            padding: 12px;
+            background: var(--glacier-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .btn-reset:hover { background: #2980b9; }
+
+        /* Nonogram Grid Construction */
+        .game-wrapper {
+            display: grid;
+            grid-template-columns: auto auto;
+            grid-template-rows: auto auto;
+            background: white;
+            padding: 25px;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .corner {
+            grid-row: 1;
+            grid-column: 1;
+            background: var(--hint-bg);
+            border-bottom: 2px solid var(--deep-ocean);
+            border-right: 2px solid var(--deep-ocean);
+        }
+
+        #top-hints {
+            grid-row: 1;
+            grid-column: 2;
+            display: flex;
+            background: var(--hint-bg);
+            border-bottom: 2px solid var(--deep-ocean);
+        }
+
+        .top-hint-column {
+            width: var(--cell-size);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            border-left: 1px solid #cbdde2;
+            font-size: 11px;
+            padding: 8px 0;
+            font-weight: bold;
+        }
+
+        #left-hints {
+            grid-row: 2;
+            grid-column: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--hint-bg);
+            border-right: 2px solid var(--deep-ocean);
+        }
+
+        .left-hint-row {
+            height: var(--cell-size);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border-top: 1px solid #cbdde2;
+        }
+
+        #grid {
+            grid-row: 2;
+            grid-column: 2;
+            display: grid;
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            border: 1px solid #eee;
+            box-sizing: border-box;
+            cursor: pointer;
+            background: #fff;
+        }
+
+        /* 5x5 quadrant visual aid */
+        .cell:nth-child(5n) { border-right: 1px solid #ccc; }
+        .cell:nth-child(10n) { border-right: 1px solid #eee; }
+
+        .cell.filled { background-color: var(--deep-ocean); }
+        .cell.marked::after {
+            content: "×";
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #e74c3c;
+            font-size: 18px;
+        }
+
+        /* Confetti Effect */
+        #confetti-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 8px; height: 8px;
+            animation: fall 3s linear forwards;
+        }
+
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Penguin Puzzles</h1>
+    <nav>
+        <ul>
+            <li><a href="index.html">Bootstrap Page</a></li>
+            <li><a href="fromscratch.html">Scratch Page</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="main-workspace">
+    <div class="sidebar">
+        <h3>Level Menu</h3>
+        <select id="puzzle-select" onchange="loadPuzzle(this.value)">
+            <option value="0">01: Penguin Palace</option>
+            <option value="1">02: Ice Fortress</option>
+            <option value="2">03: Signal Peak</option>
+            <option value="3">04: Polar Bear Express</option>
+            <option value="4">05: Frigid Ice</option>
+            <option value="5">06: Blizzard</option>
+            <option value="6">07: Crystalline Gem</option>
+            <option value="7">08: Polar Plunge</option>
+            <option value="8">09: Baby Penguin</option>
+            <option value="9">10: Arctic Horizon</option>
+        </select>
+        <button class="btn-reset" onclick="resetGrid()">Reset Game</button>
+    </div>
+
+    <div class="game-wrapper">
+        <div class="corner"></div>
+        <div id="top-hints"></div>
+        <div id="left-hints"></div>
+        <div id="grid"></div>
+    </div>
+</div>
+
+<div id="confetti-layer"></div>
+
+<script>
+    const puzzles = [
+        [[1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,1,0,1],[1,0,1,0,0,0,0,1,0,1],[1,0,1,0,1,1,0,1,0,1],[1,0,1,0,1,1,0,1,0,1],[1,0,1,0,0,0,0,1,0,1],[1,0,1,1,1,1,1,1,0,1],[1,0,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1]],
+        [[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,0],[1,1,1,0,0,0,0,1,1,1],[1,1,1,0,0,0,0,1,1,1],[1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,1,0,0],[0,0,0,1,1,1,1,0,0,0]],
+        [[0,0,0,0,1,1,0,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1,1],[0,0,0,1,1,1,1,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,0,1,1,1,1,0,0,0]],
+        [[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,0,0,1,1,0,0],[0,0,1,1,0,0,1,1,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,0,0,1,1,0,0,0,0],[0,0,0,0,1,1,0,0,0,0],[0,0,0,0,1,1,1,1,0,0],[0,0,0,0,1,1,0,0,0,0],[0,0,0,0,1,1,1,1,0,0],[0,0,0,0,1,1,0,0,0,0]],
+        [[1,1,1,0,0,0,0,1,1,1],[1,1,1,0,0,0,0,1,1,1],[1,1,1,0,0,0,0,1,1,1],[0,0,0,0,0,0,0,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,0,0,0,0,0,0,0,0],[1,1,1,0,0,0,0,1,1,1],[1,1,1,0,0,0,0,1,1,1],[1,1,1,0,0,0,0,1,1,1]],
+        [[0,0,0,0,1,1,0,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1,1],[0,0,0,1,1,1,1,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,0,1,1,1,1,0,0,0]],
+        [[0,0,0,0,1,1,0,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,0,0,1,1,0,0],[0,1,1,0,0,0,0,1,1,0],[1,1,0,0,0,0,0,0,1,1],[1,1,0,0,0,0,0,0,1,1],[0,1,1,0,0,0,0,1,1,0],[0,0,1,1,0,0,1,1,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,0,0,1,1,0,0,0,0]],
+        [[0,0,0,0,1,1,0,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,0,0,1,1,0,0],[0,1,1,0,0,0,0,1,1,0],[0,0,0,0,1,1,0,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1]],
+        [[1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1],[1,1,0,0,0,0,0,0,1,1],[1,1,0,1,1,1,1,0,1,1],[1,1,0,1,1,1,1,0,1,1],[1,1,0,1,1,1,1,0,1,1],[1,1,0,1,1,1,1,0,1,1],[1,1,0,0,0,0,0,0,1,1],[1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1]],
+        [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,1,0,0,0,0],[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1]]
+    ];
+
+    let currentPuzzle = puzzles[0];
+    const gridElement = document.getElementById('grid');
+
+    function getHints(arr) {
+        let hints = [];
+        let count = 0;
+        for (let val of arr) {
+            if (val === 1) count++;
+            else { if (count > 0) hints.push(count); count = 0; }
+        }
+        if (count > 0) hints.push(count);
+        return hints.length ? hints : [0];
+    }
+
+    function loadPuzzle(index) {
+        currentPuzzle = puzzles[index];
+        renderBoard();
+    }
+
+    function renderBoard() {
+        gridElement.style.gridTemplateColumns = `repeat(10, var(--cell-size))`;
+        gridElement.innerHTML = '';
+        document.getElementById('top-hints').innerHTML = '';
+        document.getElementById('left-hints').innerHTML = '';
+        document.getElementById('confetti-layer').innerHTML = '';
+
+        for (let col = 0; col < 10; col++) {
+            const hints = getHints(currentPuzzle.map(row => row[col]));
+            const div = document.createElement('div');
+            div.className = 'top-hint-column';
+            div.innerHTML = hints.join('<br>');
+            document.getElementById('top-hints').appendChild(div);
+        }
+
+        for (let row = 0; row < 10; row++) {
+            const hints = getHints(currentPuzzle[row]);
+            const div = document.createElement('div');
+            div.className = 'left-hint-row';
+            div.innerHTML = hints.join(' ');
+            document.getElementById('left-hints').appendChild(div);
+        }
+
+        for (let r = 0; r < 10; r++) {
+            for (let c = 0; c < 10; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+                cell.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) toggleCell(cell, 'fill');
+                    if (e.button === 2) toggleCell(cell, 'mark');
+                });
+                cell.addEventListener('contextmenu', e => e.preventDefault());
+                gridElement.appendChild(cell);
+            }
+        }
+    }
+
+    function toggleCell(cell, action) {
+        cell.classList.toggle(action === 'fill' ? 'filled' : 'marked');
+        if (action === 'fill') cell.classList.remove('marked');
+        else cell.classList.remove('filled');
+        checkWin();
+    }
+
+    function checkWin() {
+        const cells = document.querySelectorAll('.cell');
+        let isWin = true;
+        cells.forEach(cell => {
+            const r = cell.dataset.row;
+            const c = cell.dataset.col;
+            if ((currentPuzzle[r][c] === 1) !== cell.classList.contains('filled')) isWin = false;
+        });
+        if (isWin) {
+            const layer = document.getElementById('confetti-layer');
+            if (layer.children.length > 0) return;
+            const colors = ['#3498db', '#9b59b6', '#2ecc71', '#f1c40f', '#e74c3c'];
+            for (let i = 0; i < 80; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                c.style.animationDelay = Math.random() * 2 + 's';
+                layer.appendChild(c);
+            }
+        }
+    }
+
+    function resetGrid() {
+        document.querySelectorAll('.cell').forEach(c => c.classList.remove('filled', 'marked'));
+        document.getElementById('confetti-layer').innerHTML = '';
+    }
+
+    renderBoard();
+</script>
+</body>
+</html>
